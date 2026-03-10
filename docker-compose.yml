@@ -1,0 +1,58 @@
+version: "3.9"
+
+services:
+  # ── Redis ────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ── Event Processor Worker ───────────────────────────────────
+  worker:
+    build: .
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      CONSUMER_GROUP: event-processors
+      CONSUMER_NAME: worker-1
+      STREAM_NAME: events
+      DLQ_STREAM_NAME: events-dlq
+      METRICS_PORT: "9100"
+    ports:
+      - "9100:9100"
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ── Second Worker (demonstrates scaling) ─────────────────────
+  worker-2:
+    build: .
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      CONSUMER_GROUP: event-processors
+      CONSUMER_NAME: worker-2
+      STREAM_NAME: events
+      DLQ_STREAM_NAME: events-dlq
+      METRICS_PORT: "9101"
+    ports:
+      - "9101:9101"
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ── Prometheus ───────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./alert_rules.yml:/etc/prometheus/alert_rules.yml
+    depends_on:
+      - worker

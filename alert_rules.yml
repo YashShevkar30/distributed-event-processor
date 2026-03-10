@@ -1,0 +1,60 @@
+groups:
+  - name: event_processor_alerts
+    rules:
+      # ── Backlog Growth Alert ───────────────────────────────────
+      - alert: EventBacklogHigh
+        expr: event_backlog_size > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Event backlog is growing"
+          description: "Stream backlog has exceeded 1000 messages for 5 minutes. Current: {{ $value }}"
+
+      - alert: EventBacklogCritical
+        expr: event_backlog_size > 5000
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Event backlog is critically high"
+          description: "Stream backlog has exceeded 5000 messages. Immediate investigation required. Current: {{ $value }}"
+
+      # ── Error Rate Alert ───────────────────────────────────────
+      - alert: HighErrorRate
+        expr: rate(events_errors_total[5m]) > 0.1
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High event processing error rate"
+          description: "Error rate exceeds 0.1/sec for 3 minutes. Check logs for details."
+
+      # ── Dead Letter Queue Alert ────────────────────────────────
+      - alert: DLQGrowing
+        expr: increase(events_dead_lettered_total[1h]) > 10
+        labels:
+          severity: warning
+        annotations:
+          summary: "Events are being dead-lettered"
+          description: "{{ $value }} events have been dead-lettered in the last hour."
+
+      # ── Worker Health ──────────────────────────────────────────
+      - alert: NoActiveWorkers
+        expr: active_workers == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "No active event processor workers"
+          description: "All workers appear to be down. Events are not being processed."
+
+      # ── Latency Alert ──────────────────────────────────────────
+      - alert: HighProcessingLatency
+        expr: histogram_quantile(0.95, rate(event_processing_latency_seconds_bucket[5m])) > 5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High event processing latency"
+          description: "P95 processing latency exceeds 5 seconds."
