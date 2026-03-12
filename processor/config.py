@@ -33,3 +33,5 @@ class Settings(BaseSettings):
 @lru_cache()
 def get_settings() -> Settings:
     return Settings()
+
+# TODO: Add more robust error handling here
