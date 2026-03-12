@@ -271,3 +271,6 @@ See [docs/failure_handling.md](docs/failure_handling.md) for the complete failur
 ## License
 
 This project is open source and available under the [MIT License](LICENSE).
+
+## Architecture Notes
+Additional architecture documentation to be added here.
