@@ -17,3 +17,7 @@ htmlcov/
 .idea/
 .vscode/
 *.log
+
+# Editor files
+.vscode/
+.idea/
