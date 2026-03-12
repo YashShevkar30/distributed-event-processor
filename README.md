@@ -274,3 +274,7 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ## Architecture Notes
 Additional architecture documentation to be added here.
+
+
+## Contributing
+Contributions are welcome! Please open an issue first.
